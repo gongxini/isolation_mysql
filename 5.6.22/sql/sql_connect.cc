@@ -37,6 +37,8 @@
 
 #include <algorithm>
 
+#include "psandbox.h"
+//#endif
 using std::min;
 using std::max;
 
@@ -928,7 +930,7 @@ bool thd_is_connection_alive(THD *thd)
 void do_handle_one_connection(THD *thd_arg)
 {
   THD *thd= thd_arg;
-
+  PSandbox* box = create_psandbox(0.2);
   thd->thr_create_utime= my_micro_time();
 
   if (MYSQL_CALLBACK_ELSE(thread_scheduler, init_new_connection_thread, (), 0))
@@ -982,6 +984,7 @@ void do_handle_one_connection(THD *thd_arg)
       if (do_command(thd))
   break;
     }
+    release_psandbox(box);
     end_connection(thd);
 
 end_thread:
@@ -995,6 +998,7 @@ end_thread:
       handle the next connection.
     */
     thd= current_thd;
+    box = create_psandbox(0.2);
     thd->thread_stack= (char*) &thd;
   }
 }

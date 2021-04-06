@@ -1,5 +1,4 @@
-# Copyright (c) 2006, 2014, Oracle and/or its affiliates. All rights reserved.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; version 2 of the License.
@@ -17,6 +16,20 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 # Avoid warnings in higher versions
 if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" GREATER 2.6)
  CMAKE_POLICY(VERSION 2.8)
+endif()
+
+if(DEFINED ENV{PSANDBOXDIR})
+  MESSAGE(STATUS "PSANDBOXDIR is set to $ENV{PSANDBOXDIR}")
+  SET(PSANDBOXSRC_INCLUDE "$ENV{PSANDBOXDIR}/libs/include")
+  SET(PSANDBOXSRC_SRC "$ENV{PSANDBOXDIR}/libs/src")
+  INCLUDE_DIRECTORIES(${PSANDBOXSRC_INCLUDE})
+  SET(PSANDBOXSRC_LIB "$ENV{PSANDBOXDIR}/cmake-build-debug")
+  LINK_DIRECTORIES(${PSANDBOXSRC_LIB})
+
+  LINK_LIBRARIES("${PSANDBOXSRC_LIB}/libpsandbox.so")
+  SET(HAVE_PSANDBOX ON CACHE BOOL "Psandbox test")
+else()
+  MESSAGE(WARNING "PSANDBOXDIR environment variable is not set, building MySQL without PSANDBOX.")
 endif()
 
 # We use PROPERTIES LINK_INTERFACE_LIBRARIES. See cmake --help-policy CMP0022

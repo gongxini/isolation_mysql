@@ -34,7 +34,6 @@ enum enum_mysql_completiontype {
 };
 
 extern "C" int test_if_data_home_dir(const char *dir);
-
 bool stmt_causes_implicit_commit(const THD *thd, uint mask);
 
 bool select_precheck(THD *thd, LEX *lex, TABLE_LIST *tables,

@@ -102,6 +102,7 @@
 #include "table_cache.h" // table_cache_manager
 
 #include <algorithm>
+#include <psandbox.h>
 using std::max;
 using std::min;
 
@@ -884,7 +885,8 @@ void free_items(Item *item)
 */
 void cleanup_items(Item *item)
 {
-  DBUG_ENTER("cleanup_items");  
+  DBUG_ENTER("cleanup_items");
+
   for (; item ; item=item->next)
     item->cleanup();
   DBUG_VOID_RETURN;
@@ -911,7 +913,7 @@ bool do_command(THD *thd)
   ulong packet_length;
   NET *net= &thd->net;
   enum enum_server_command command;
-
+  PSandbox *sandbox;
   DBUG_ENTER("do_command");
 
   /*
@@ -1030,8 +1032,10 @@ bool do_command(THD *thd)
   my_net_set_read_timeout(net, thd->variables.net_read_timeout);
 
   DBUG_ASSERT(packet_length);
-
+  sandbox = get_psandbox();
+  active_psandbox(sandbox);
   return_value= dispatch_command(command, thd, packet+1, (uint) (packet_length-1));
+  freeze_psandbox(sandbox);
 
 out:
   /* The statement instrumentation must be closed in all cases. */
