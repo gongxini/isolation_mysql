@@ -926,11 +926,12 @@ bool thd_is_connection_alive(THD *thd)
     return TRUE;
   return FALSE;
 }
-
+//#endif /* EMBEDDED_LIBRARY */
 void do_handle_one_connection(THD *thd_arg)
 {
   THD *thd= thd_arg;
-  PSandbox* box = create_psandbox(0.2);
+  PSandbox* box = create_psandbox();
+
   thd->thr_create_utime= my_micro_time();
 
   if (MYSQL_CALLBACK_ELSE(thread_scheduler, init_new_connection_thread, (), 0))
@@ -984,6 +985,7 @@ void do_handle_one_connection(THD *thd_arg)
       if (do_command(thd))
   break;
     }
+    printf("the count is %d, for psandbox %d\n",box->total_activity,box->bid);
     release_psandbox(box);
     end_connection(thd);
 
@@ -998,7 +1000,7 @@ end_thread:
       handle the next connection.
     */
     thd= current_thd;
-    box = create_psandbox(0.2);
+    box = create_psandbox();
     thd->thread_stack= (char*) &thd;
   }
 }

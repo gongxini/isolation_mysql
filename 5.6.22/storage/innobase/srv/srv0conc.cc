@@ -37,6 +37,7 @@ InnoDB concurrency manager
 Created 2011/04/18 Sunny Bains
 *******************************************************/
 
+#include <psandbox.h>
 #include "srv0srv.h"
 #include "sync0sync.h"
 #include "trx0trx.h"
@@ -199,6 +200,14 @@ srv_conc_enter_innodb_with_atomics(
 	ibool	notified_mysql = FALSE;
 
 	ut_a(!trx->declared_to_be_inside_innodb);
+    PSandbox *psandbox = get_psandbox();
+    struct sandboxEvent event;
+    if (psandbox) {
+      event.event_type = PREPARE_QUEUE;
+      event.key = (void*)&srv_conc.n_active;
+      update_psandbox(&event, psandbox);
+    }
+
 
 	for (;;) {
 		ulint	sleep_in_us;
@@ -211,7 +220,11 @@ srv_conc_enter_innodb_with_atomics(
 				&srv_conc.n_active, 1);
 
 			if (n_active <= srv_thread_concurrency) {
-
+              if (psandbox) {
+                event.event_type = ENTER_QUEUE;
+                event.key = (void*)&srv_conc.n_active;
+                update_psandbox(&event, psandbox);
+              }
 				srv_enter_innodb_with_tickets(trx);
 
 				if (notified_mysql) {
@@ -282,6 +295,12 @@ srv_conc_enter_innodb_with_atomics(
 		if (srv_adaptive_max_sleep_delay > 0 && n_sleeps > 1) {
 			++srv_thread_sleep_delay;
 		}
+
+//      if (psandbox) {
+//        event.event_type = RETRY_QUEUE;
+//        event.key = (void*)&srv_conc.n_active;
+//        update_psandbox(&event, psandbox);
+//      }
 	}
 }
 
@@ -295,8 +314,17 @@ srv_conc_exit_innodb_with_atomics(
 {
 	trx->n_tickets_to_enter_innodb = 0;
 	trx->declared_to_be_inside_innodb = FALSE;
+	// Psandbox change
+    BoxEvent event;
+    PSandbox* psandbox = get_psandbox();
 
 	(void) os_atomic_decrement_lint(&srv_conc.n_active, 1);
+
+	if (psandbox) {
+      event.event_type = EXIT_QUEUE;
+      event.key = (void*)&srv_conc.n_active;
+      update_psandbox(&event, psandbox);
+	}
 }
 #else
 /*********************************************************************//**
