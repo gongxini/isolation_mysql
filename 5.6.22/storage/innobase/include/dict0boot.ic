@@ -26,8 +26,6 @@ Created 4/18/1996 Heikki Tuuri
 /**********************************************************************//**
 Returns a new row id.
 @return	the new id */
-#include <psandbox.h>
-#include <sql_parse.h>
 
 UNIV_INLINE
 row_id_t
@@ -35,12 +33,12 @@ dict_sys_get_new_row_id(void)
 /*=========================*/
 {
 	row_id_t	id;
-    BoxEvent event;
-    event.event_type = MUTEX_REQUIRE;
-    event.key_type = MUTEX;
-    event.key = &dict_sys->mutex;
-    PSandbox *sandbox = get_psandbox();
-    update_psandbox(event, sandbox);
+//    BoxEvent event;
+//    event.event_type = MUTEX_REQUIRE;
+//    event.key_type = MUTEX;
+//    event.key = &dict_sys->mutex;
+//    PSandbox *sandbox = get_psandbox();
+//    update_psandbox(event, sandbox);
 
 
 
@@ -53,18 +51,18 @@ dict_sys_get_new_row_id(void)
 
 	dict_sys->row_id++;
 
-    event.event_type = MUTEX_GET;
-    event.key_type = MUTEX;
-    event.key = &dict_sys->mutex;
-    update_psandbox(event, sandbox);
+//    event.event_type = MUTEX_GET;
+//    event.key_type = MUTEX;
+//    event.key = &dict_sys->mutex;
+//    update_psandbox(event, sandbox);
 	mutex_exit(&(dict_sys->mutex));
 
 
 
-    event.event_type = MUTEX_RELEASE;
-    event.key_type = MUTEX;
-    event.key = &dict_sys->mutex;
-    update_psandbox(event, sandbox);
+//    event.event_type = MUTEX_RELEASE;
+//    event.key_type = MUTEX;
+//    event.key = &dict_sys->mutex;
+//    update_psandbox(event, sandbox);
 
 	return(id);
 }
