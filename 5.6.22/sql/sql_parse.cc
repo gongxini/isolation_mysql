@@ -1033,9 +1033,9 @@ bool do_command(THD *thd)
 
   DBUG_ASSERT(packet_length);
   sandbox = get_psandbox();
-//  active_psandbox(sandbox);
+  active_psandbox(sandbox);
   return_value= dispatch_command(command, thd, packet+1, (uint) (packet_length-1));
-//  freeze_psandbox(sandbox);
+  freeze_psandbox(sandbox);
 
 out:
   /* The statement instrumentation must be closed in all cases. */

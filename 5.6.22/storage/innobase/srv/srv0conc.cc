@@ -203,7 +203,7 @@ srv_conc_enter_innodb_with_atomics(
     PSandbox *psandbox = get_psandbox();
     struct sandboxEvent event;
     if (psandbox) {
-      event.event_type = PREPARE_QUEUE;
+      event.event_type = PREPARE;
       event.key = (void*)&srv_conc.n_active;
       update_psandbox(&event, psandbox);
     }
@@ -221,7 +221,7 @@ srv_conc_enter_innodb_with_atomics(
 
 			if (n_active <= srv_thread_concurrency) {
               if (psandbox) {
-                event.event_type = ENTER_QUEUE;
+                event.event_type = ENTER;
                 event.key = (void*)&srv_conc.n_active;
                 update_psandbox(&event, psandbox);
               }
@@ -296,11 +296,6 @@ srv_conc_enter_innodb_with_atomics(
 			++srv_thread_sleep_delay;
 		}
 
-//      if (psandbox) {
-//        event.event_type = RETRY_QUEUE;
-//        event.key = (void*)&srv_conc.n_active;
-//        update_psandbox(&event, psandbox);
-//      }
 	}
 }
 
@@ -321,7 +316,7 @@ srv_conc_exit_innodb_with_atomics(
 	(void) os_atomic_decrement_lint(&srv_conc.n_active, 1);
 
 	if (psandbox) {
-      event.event_type = EXIT_QUEUE;
+      event.event_type = EXIT;
       event.key = (void*)&srv_conc.n_active;
       update_psandbox(&event, psandbox);
 	}
