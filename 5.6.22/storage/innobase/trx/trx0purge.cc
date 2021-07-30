@@ -23,6 +23,7 @@ Purge old versions
 Created 3/26/1996 Heikki Tuuri
 *******************************************************/
 
+#include <psandbox.h>
 #include "trx0purge.h"
 
 #ifdef UNIV_NONINL
@@ -119,6 +120,13 @@ trx_purge_sys_create(
 	purge_sys = static_cast<trx_purge_t*>(mem_zalloc(sizeof(*purge_sys)));
 
 	purge_sys->state = PURGE_STATE_INIT;
+    PSandbox *psandbox;
+    struct sandboxEvent event;
+    if (psandbox) {
+      event.event_type = HOLD;
+      event.key = (size_t) &purge_sys->state;
+      update_psandbox(&event, psandbox);
+    }
 	purge_sys->event = os_event_create();
 
 	/* Take ownership of ib_bh, we are responsible for freeing it. */
@@ -1392,6 +1400,13 @@ trx_purge_run(void)
 			ib_logf(IB_LOG_LEVEL_INFO, "Resuming purge");
 
 			purge_sys->state = PURGE_STATE_RUN;
+			PSandbox *psandbox;
+			struct sandboxEvent event;
+            if (psandbox) {
+              event.event_type = UNHOLD;
+              event.key = (size_t) &purge_sys->state;
+              update_psandbox(&event, psandbox);
+            }
 		}
 
 		MONITOR_INC_VALUE(MONITOR_PURGE_RESUME_COUNT, 1);

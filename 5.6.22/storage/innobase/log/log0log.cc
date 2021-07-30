@@ -30,6 +30,7 @@ Database log
 Created 12/9/1995 Heikki Tuuri
 *******************************************************/
 
+#include <psandbox.h>
 #include "log0log.h"
 
 #ifdef UNIV_NONINL
@@ -212,6 +213,14 @@ log_buffer_extend(
 		}
 	}
 
+  PSandbox *psandbox = get_psandbox();
+  struct sandboxEvent event;
+  if (psandbox) {
+    event.event_type = HOLD;
+    event.key = (size_t)&log_sys->is_extending;
+    update_psandbox(&event, psandbox);
+  }
+
 	log_sys->is_extending = true;
 
 	while (log_sys->n_pending_writes != 0
@@ -255,7 +264,11 @@ log_buffer_extend(
 
 	ut_ad(log_sys->is_extending);
 	log_sys->is_extending = false;
-
+    if (psandbox) {
+      event.event_type = UNHOLD;
+      event.key = (size_t)&log_sys->is_extending;
+      update_psandbox(&event, psandbox);
+    }
 	mutex_exit(&(log_sys->mutex));
 
 	ib_logf(IB_LOG_LEVEL_INFO,
@@ -296,6 +309,13 @@ log_reserve_and_open(
 
 		log_buffer_extend((len + 1) * 2);
 	}
+  PSandbox *psandbox = get_psandbox();
+  struct sandboxEvent event;
+  if (psandbox) {
+    event.event_type = PREPARE;
+    event.key = (size_t) &log->is_extending;
+    update_psandbox(&event, psandbox);
+  }
 loop:
 	mutex_enter(&(log->mutex));
 	ut_ad(!recv_no_log_write);
@@ -334,7 +354,11 @@ loop:
 
 		goto loop;
 	}
-
+  if (psandbox) {
+    event.event_type = ENTER;
+    event.key = (size_t)&log->is_extending;
+    update_psandbox(&event, psandbox);
+  }
 #ifdef UNIV_LOG_ARCHIVE
 	if (log->archiving_state != LOG_ARCH_OFF) {
 

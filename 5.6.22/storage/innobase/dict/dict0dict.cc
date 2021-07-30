@@ -87,6 +87,7 @@ ib_warn_row_too_big(const dict_table_t*	table);
 #include "strfunc.h" /* strconvert() */
 
 #include <ctype.h>
+#include <psandbox.h>
 
 /** the dictionary system */
 UNIV_INTERN dict_sys_t*	dict_sys	= NULL;
@@ -2847,6 +2848,14 @@ dict_table_wait_for_bg_threads_to_exit(
 #ifdef UNIV_SYNC_DEBUG
 	ut_ad(mutex_own(&fts->bg_threads_mutex));
 #endif /* UNIV_SYNC_DEBUG */
+  PSandbox *psandbox = get_psandbox();
+  int count = 0;
+  struct sandboxEvent event;
+  if (psandbox) {
+    event.event_type = PREPARE;
+    event.key = (size_t)&fts->bg_threads;
+    update_psandbox(&event, psandbox);
+  }
 
 	while (fts->bg_threads > 0) {
 		mutex_exit(&fts->bg_threads_mutex);
@@ -2855,6 +2864,12 @@ dict_table_wait_for_bg_threads_to_exit(
 
 		mutex_enter(&fts->bg_threads_mutex);
 	}
+
+  if (psandbox) {
+    event.event_type = ENTER;
+    event.key = (size_t)&fts->bg_threads;
+    update_psandbox(&event, psandbox);
+  }
 }
 
 /*******************************************************************//**

@@ -500,6 +500,7 @@ buf_page_set_sticky(
 	ut_ad(buf_page_get_io_fix(bpage) == BUF_IO_NONE);
 
 	bpage->io_fix = BUF_IO_PIN;
+
 }
 
 /*********************************************************************//**
@@ -518,6 +519,7 @@ buf_page_unset_sticky(
 	ut_ad(buf_page_get_io_fix(bpage) == BUF_IO_PIN);
 
 	bpage->io_fix = BUF_IO_NONE;
+
 }
 
 /********************************************************************//**

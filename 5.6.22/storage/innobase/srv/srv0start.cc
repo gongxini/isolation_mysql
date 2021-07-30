@@ -38,6 +38,7 @@ Starts the InnoDB database server
 Created 2/16/1996 Heikki Tuuri
 *************************************************************************/
 
+#include <psandbox.h>
 #include "mysqld.h"
 #include "pars0pars.h"
 #include "row0ftsort.h"
@@ -1469,7 +1470,13 @@ srv_start_wait_for_purge_to_start()
 	purge_state_t	state = trx_purge_state();
 
 	ut_a(state != PURGE_STATE_DISABLED);
-
+    PSandbox* psandbox = get_psandbox();
+    struct sandboxEvent event;
+    if (psandbox) {
+      event.event_type = PREPARE;
+      event.key = (size_t) &purge_sys->state;
+      update_psandbox(&event, psandbox);
+    }
 	while (srv_shutdown_state == SRV_SHUTDOWN_NONE
 	       && srv_force_recovery < SRV_FORCE_NO_BACKGROUND
 	       && state == PURGE_STATE_INIT) {
@@ -1491,6 +1498,11 @@ srv_start_wait_for_purge_to_start()
 			ut_error;
 		}
 	}
+  if (psandbox) {
+    event.event_type = ENTER;
+    event.key = (size_t) &purge_sys->state;
+    update_psandbox(&event, psandbox);
+  }
 }
 
 /********************************************************************
@@ -2699,6 +2711,13 @@ files_checked:
 
 	} else {
 		purge_sys->state = PURGE_STATE_DISABLED;
+		PSandbox *psandbox;
+      struct sandboxEvent event;
+      if (psandbox) {
+        event.event_type = UNHOLD;
+        event.key = (size_t) &purge_sys->state;
+        update_psandbox(&event, psandbox);
+      }
 	}
 
 	if (!srv_read_only_mode) {
