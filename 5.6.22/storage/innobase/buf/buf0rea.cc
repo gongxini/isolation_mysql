@@ -87,13 +87,8 @@ buf_read_page_handle_error(
 
 	ut_ad(buf_pool->n_pend_reads > 0);
 	buf_pool->n_pend_reads--;
-    PSandbox* psandbox = get_psandbox();
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = UNHOLD;
-      event.key = (size_t) &buf_pool->n_pend_reads;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t) &buf_pool->n_pend_reads, UNHOLD);
+
 	buf_pool_mutex_exit(buf_pool);
 }
 
@@ -791,8 +786,6 @@ buf_read_ibuf_merge_pages(
 #ifdef UNIV_IBUF_DEBUG
 	ut_a(n_stored < UNIV_PAGE_SIZE);
 #endif
-  PSandbox *psandbox = get_psandbox();
-  struct sandboxEvent event;
 
 	for (i = 0; i < n_stored; i++) {
 		dberr_t		err;
@@ -800,20 +793,14 @@ buf_read_ibuf_merge_pages(
 		ulint		zip_size = fil_space_get_zip_size(space_ids[i]);
 
 		buf_pool = buf_pool_get(space_ids[i], page_nos[i]);
-      if (psandbox) {
-        event.event_type = PREPARE;
-        event.key = (size_t) &buf_pool->n_pend_reads;
-        update_psandbox(&event, psandbox);
-      }
+		update_psandbox((size_t) &buf_pool->n_pend_reads, PREPARE);
+
 		while (buf_pool->n_pend_reads
 		       > buf_pool->curr_size / BUF_READ_AHEAD_PEND_LIMIT) {
 			os_thread_sleep(500000);
 		}
-      if (psandbox) {
-        event.event_type = ENTER;
-        event.key = (size_t) &buf_pool->n_pend_reads;
-        update_psandbox(&event, psandbox);
-      }
+		update_psandbox((size_t) &buf_pool->n_pend_reads, ENTER);
+
 		if (UNIV_UNLIKELY(zip_size == ULINT_UNDEFINED)) {
 
 			goto tablespace_deleted;
@@ -890,13 +877,8 @@ buf_read_recv_pages(
 
 		os_aio_print_debug = FALSE;
 		buf_pool = buf_pool_get(space, page_nos[i]);
-        PSandbox *psandbox = get_psandbox();
-        struct sandboxEvent event;
-        if (psandbox) {
-          event.event_type = PREPARE;
-          event.key = (size_t) &buf_pool->n_pend_reads;
-          update_psandbox(&event, psandbox);
-        }
+		update_psandbox((size_t) &buf_pool->n_pend_reads, PREPARE);
+
 		while (buf_pool->n_pend_reads >= recv_n_pool_free_frames / 2) {
 
 			os_aio_simulated_wake_handler_threads();
@@ -918,11 +900,9 @@ buf_read_recv_pages(
 				os_aio_print_debug = TRUE;
 			}
 		}
-      if (psandbox) {
-        event.event_type = ENTER;
-        event.key = (size_t) &buf_pool->n_pend_reads;
-        update_psandbox(&event, psandbox);
-      }
+
+        update_psandbox((size_t) &buf_pool->n_pend_reads, ENTER);
+
 		os_aio_print_debug = FALSE;
 
 		if ((i + 1 == n_stored) && sync) {

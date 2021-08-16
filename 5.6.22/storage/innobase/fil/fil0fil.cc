@@ -2140,13 +2140,8 @@ fil_inc_pending_ops(
 	space->n_pending_ops++;
 
 	mutex_exit(&fil_system->mutex);
-    PSandbox *psandbox = get_psandbox();
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = HOLD;
-      event.key = (size_t)&space->n_pending_ops;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t)&space->n_pending_ops,HOLD);
+
 	return(FALSE);
 }
 
@@ -2173,13 +2168,8 @@ fil_decr_pending_ops(
 
 	if (space != NULL) {
 		space->n_pending_ops--;
-      PSandbox *psandbox = get_psandbox();
-      struct sandboxEvent event;
-      if (psandbox) {
-        event.event_type = UNHOLD;
-        event.key = (size_t)&space->n_pending_ops;
-        update_psandbox(&event, psandbox);
-      }
+
+        update_psandbox((size_t)&space->n_pending_ops, UNHOLD);
 	}
 
 	mutex_exit(&fil_system->mutex);
@@ -2573,13 +2563,8 @@ fil_check_pending_operations(
 	mutex_exit(&fil_system->mutex);
 
 	/* Check for pending change buffer merges. */
-  PSandbox *psandbox = get_psandbox();
-  struct sandboxEvent event;
-  if (psandbox) {
-    event.event_type = PREPARE;
-    event.key = (size_t)&sp->n_pending_ops;
-    update_psandbox(&event, psandbox);
-  }
+    update_psandbox((size_t)&sp->n_pending_ops, PREPARE);
+
 	do {
 		mutex_enter(&fil_system->mutex);
 
@@ -2594,11 +2579,8 @@ fil_check_pending_operations(
 		}
 
 	} while (count > 0);
-  if (psandbox) {
-    event.event_type = ENTER;
-    event.key = (size_t)&sp->n_pending_ops;
-    update_psandbox(&event, psandbox);
-  }
+
+    update_psandbox((size_t)&sp->n_pending_ops, ENTER);
 	/* Check for pending IO. */
 
 	*path = 0;
@@ -6184,13 +6166,8 @@ fil_buf_block_init(
 	block->frame = frame;
 
 	block->page.io_fix = BUF_IO_NONE;
-    PSandbox* psandbox = get_psandbox();
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = UNHOLD;
-      event.key = (size_t) &block->page.io_fix;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t) &block->page.io_fix, UNHOLD);
+
 	/* There are assertions that check for this. */
 	block->page.buf_fix_count = 1;
 	block->page.state = BUF_BLOCK_READY_FOR_USE;

@@ -2725,13 +2725,8 @@ DECLARE_THREAD(srv_purge_coordinator_thread)(
 
 	purge_sys->running = true;
 	purge_sys->state = PURGE_STATE_RUN;
-    PSandbox* psandbox = get_psandbox();
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = UNHOLD;
-      event.key = (size_t) &purge_sys->state;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t) &purge_sys->state, UNHOLD);
+
 	rw_lock_x_unlock(&purge_sys->latch);
 
 #ifdef UNIV_PFS_THREAD
@@ -2799,11 +2794,8 @@ DECLARE_THREAD(srv_purge_coordinator_thread)(
 	rw_lock_x_lock(&purge_sys->latch);
 
 	purge_sys->state = PURGE_STATE_EXIT;
-  if (psandbox) {
-    event.event_type = UNHOLD;
-    event.key = (size_t) &purge_sys->state;
-    update_psandbox(&event, psandbox);
-  }
+    update_psandbox((size_t) &purge_sys->state, UNHOLD);
+
 	purge_sys->running = false;
 
 	rw_lock_x_unlock(&purge_sys->latch);

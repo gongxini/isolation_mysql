@@ -479,15 +479,8 @@ mutex_spin_wait(
 	ulint		index;		/* index of the reserved wait cell */
 	sync_array_t*	sync_arr;
 	size_t		counter_index;
-    PSandbox *psandbox = get_psandbox();
-    int count = 0;
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = PREPARE;
-      event.key = (size_t)mutex;
-      update_psandbox(&event, psandbox);
-    }
 
+	update_psandbox((size_t)mutex, PREPARE);
 	counter_index = (size_t) os_thread_get_curr_id();
 
 	ut_ad(mutex);
@@ -526,14 +519,9 @@ spin_loop:
 
 	if (ib_mutex_test_and_set(mutex) == 0) {
 		/* Succeeded! */
-      if (psandbox) {
-        event.event_type = ENTER;
-        event.key = (size_t)mutex;
-        update_psandbox(&event, psandbox);
-        event.event_type = HOLD;
-        event.key = (size_t)mutex;
-        update_psandbox(&event, psandbox);
-      }
+
+        update_psandbox((size_t)mutex, ENTER);
+        update_psandbox((size_t)mutex, HOLD);
 		ut_d(mutex->thread_id = os_thread_get_curr_id());
 #ifdef UNIV_SYNC_DEBUG
 		mutex_set_debug_info(mutex, file_name, line);
@@ -612,14 +600,8 @@ mutex_signal_object(
 	signaling the object is important. See LEMMA 1 above. */
 	os_event_set(mutex->event);
 	sync_array_object_signalled();
-    PSandbox *psandbox = get_psandbox();
-    int count = 0;
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = UNHOLD;
-      event.key = (size_t)mutex;
-      update_psandbox(&event, psandbox);
-  }
+
+	update_psandbox((size_t)mutex, UNHOLD);
 }
 
 #ifdef UNIV_SYNC_DEBUG

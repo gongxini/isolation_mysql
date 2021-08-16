@@ -218,13 +218,7 @@ srv_conc_enter_innodb_with_atomics(
 	ibool	notified_mysql = FALSE;
 
 	ut_a(!trx->declared_to_be_inside_innodb);
-    PSandbox *psandbox = get_psandbox();
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = PREPARE;
-      event.key = (size_t)&srv_conc.n_active;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t)&srv_conc.n_active, PREPARE);
 
 
 	for (;;) {
@@ -237,15 +231,10 @@ srv_conc_enter_innodb_with_atomics(
 				&srv_conc.n_active, 1);
 
 			if (n_active <= srv_thread_concurrency) {
-              if (psandbox) {
-                event.event_type = ENTER;
-                event.key = (size_t) &srv_conc.n_active;
-                update_psandbox(&event, psandbox);
-
-                event.event_type = HOLD;
-                event.key = (size_t)&srv_conc.n_active;
-                update_psandbox(&event, psandbox);
-              }
+#ifdef HAVE_PSANDBOX
+                update_psandbox((size_t) &srv_conc.n_active, ENTER);
+                update_psandbox((size_t)&srv_conc.n_active, HOLD);
+#endif
 				srv_enter_innodb_with_tickets(trx);
 
 				if (notified_mysql) {
@@ -330,16 +319,8 @@ srv_conc_exit_innodb_with_atomics(
 {
 	trx->n_tickets_to_enter_innodb = 0;
 	trx->declared_to_be_inside_innodb = FALSE;
-	// Psandbox change
-    BoxEvent event;
-    PSandbox* psandbox = get_psandbox();
-
 	(void) os_atomic_decrement_lint(&srv_conc.n_active, 1);
-    if (psandbox) {
-      event.event_type = UNHOLD;
-      event.key = (size_t)&srv_conc.n_active;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t)&srv_conc.n_active, UNHOLD);
 }
 #else
 /*********************************************************************//**

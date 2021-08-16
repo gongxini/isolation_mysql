@@ -213,14 +213,7 @@ log_buffer_extend(
 		}
 	}
 
-  PSandbox *psandbox = get_psandbox();
-  struct sandboxEvent event;
-  if (psandbox) {
-    event.event_type = HOLD;
-    event.key = (size_t)&log_sys->is_extending;
-    update_psandbox(&event, psandbox);
-  }
-
+    update_psandbox((size_t)&log_sys->is_extending, HOLD);
 	log_sys->is_extending = true;
 
 	while (log_sys->n_pending_writes != 0
@@ -264,11 +257,8 @@ log_buffer_extend(
 
 	ut_ad(log_sys->is_extending);
 	log_sys->is_extending = false;
-    if (psandbox) {
-      event.event_type = UNHOLD;
-      event.key = (size_t)&log_sys->is_extending;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t)&log_sys->is_extending, UNHOLD);
+
 	mutex_exit(&(log_sys->mutex));
 
 	ib_logf(IB_LOG_LEVEL_INFO,
@@ -309,13 +299,8 @@ log_reserve_and_open(
 
 		log_buffer_extend((len + 1) * 2);
 	}
-  PSandbox *psandbox = get_psandbox();
-  struct sandboxEvent event;
-  if (psandbox) {
-    event.event_type = PREPARE;
-    event.key = (size_t) &log->is_extending;
-    update_psandbox(&event, psandbox);
-  }
+    update_psandbox((size_t) &log->is_extending, PREPARE);
+
 loop:
 	mutex_enter(&(log->mutex));
 	ut_ad(!recv_no_log_write);
@@ -354,11 +339,8 @@ loop:
 
 		goto loop;
 	}
-  if (psandbox) {
-    event.event_type = ENTER;
-    event.key = (size_t)&log->is_extending;
-    update_psandbox(&event, psandbox);
-  }
+    update_psandbox((size_t)&log->is_extending, ENTER);
+
 #ifdef UNIV_LOG_ARCHIVE
 	if (log->archiving_state != LOG_ARCH_OFF) {
 

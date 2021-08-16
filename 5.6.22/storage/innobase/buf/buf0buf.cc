@@ -988,13 +988,9 @@ buf_block_init(
 	block->page.state = BUF_BLOCK_NOT_USED;
 	block->page.buf_fix_count = 0;
 	block->page.io_fix = BUF_IO_NONE;
-  PSandbox* psandbox = get_psandbox();
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = UNHOLD;
-      event.key = (size_t) &block->page.io_fix;
-      update_psandbox(&event, psandbox);
-    }
+
+	update_psandbox((size_t) &block->page.io_fix,UNHOLD);
+
 	block->modify_clock = 0;
 
 #if defined UNIV_DEBUG_FILE_ACCESSES || defined UNIV_DEBUG
@@ -2130,13 +2126,7 @@ got_block:
 	if (must_read) {
 		/* Let us wait until the read operation
 		completes */
-        PSandbox *psandbox;
-        struct sandboxEvent event;
-		if (psandbox) {
-          event.event_type = PREPARE;
-          event.key = (size_t) &bpage->io_fix;
-          update_psandbox(&event, psandbox);
-        }
+		update_psandbox((size_t) &bpage->io_fix, PREPARE);
 		for (;;) {
 			enum buf_io_fix	io_fix;
 
@@ -2151,11 +2141,7 @@ got_block:
 				break;
 			}
 		}
-      if (psandbox) {
-        event.event_type = ENTER;
-        event.key = (size_t) &bpage->io_fix;
-        update_psandbox(&event, psandbox);
-      }
+        update_psandbox((size_t) &bpage->io_fix, ENTER);
 	}
 
 #ifdef UNIV_IBUF_COUNT_DEBUG
@@ -2485,13 +2471,7 @@ buf_wait_for_read(buf_block_t* block)
 		/* Wait until the read operation completes */
 
 		ib_mutex_t*	mutex = buf_page_get_mutex(&block->page);
-      PSandbox* psandbox = get_psandbox();
-        struct sandboxEvent event;
-        if (psandbox) {
-          event.event_type = PREPARE;
-          event.key = (size_t) &block->page.io_fix;
-          update_psandbox(&event, psandbox);
-        }
+		update_psandbox((size_t) &block->page.io_fix, PREPARE);
 		for (;;) {
 			buf_io_fix	io_fix;
 
@@ -2509,11 +2489,8 @@ buf_wait_for_read(buf_block_t* block)
 				break;
 			}
 		}
-      if (psandbox) {
-        event.event_type = ENTER;
-        event.key = (size_t) &block->page.io_fix;
-        update_psandbox(&event, psandbox);
-      }
+        update_psandbox((size_t) &block->page.io_fix, ENTER);
+
 	}
 }
 
@@ -3392,13 +3369,8 @@ buf_page_init_low(
 {
 	bpage->flush_type = BUF_FLUSH_LRU;
 	bpage->io_fix = BUF_IO_NONE;
-    PSandbox* psandbox = get_psandbox();
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = UNHOLD;
-      event.key = (size_t) &bpage->io_fix;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t) &bpage->io_fix, UNHOLD);
+
 	bpage->buf_fix_count = 0;
 	bpage->freed_page_clock = 0;
 	bpage->access_time = 0;
@@ -3537,8 +3509,6 @@ buf_page_init_for_read(
 	ibool		lru	= FALSE;
 	void*		data;
 	buf_pool_t*	buf_pool = buf_pool_get(space, offset);
-    PSandbox* psandbox;
-    struct sandboxEvent event;
   ut_ad(buf_pool);
 
 	*err = DB_SUCCESS;
@@ -3761,13 +3731,9 @@ err_exit:
 	}
 
 	buf_pool->n_pend_reads++;
-    psandbox = get_psandbox();
 
-    if (psandbox) {
-      event.event_type = HOLD;
-      event.key = (size_t) &buf_pool->n_pend_reads;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t) &buf_pool->n_pend_reads, HOLD);
+
 func_exit:
 	buf_pool_mutex_exit(buf_pool);
 
@@ -4085,13 +4051,7 @@ buf_mark_space_corrupt(
 
 	ut_ad(buf_pool->n_pend_reads > 0);
 	buf_pool->n_pend_reads--;
-    PSandbox* psandbox = get_psandbox();
-    struct sandboxEvent event;
-    if (psandbox) {
-      event.event_type = UNHOLD;
-      event.key = (size_t) &buf_pool->n_pend_reads;
-      update_psandbox(&event, psandbox);
-    }
+	update_psandbox((size_t) &buf_pool->n_pend_reads, UNHOLD);
 	buf_pool_mutex_exit(buf_pool);
 
 	return(ret);
@@ -4111,8 +4071,7 @@ buf_page_io_complete(
 	buf_pool_t*	buf_pool = buf_pool_from_bpage(bpage);
 	const ibool	uncompressed = (buf_page_get_state(bpage)
 					== BUF_BLOCK_FILE_PAGE);
-    PSandbox* psandbox;
-    struct sandboxEvent event;
+
 	ut_a(buf_page_in_file(bpage));
 
 	/* We do not need protect io_fix here by mutex to read
@@ -4297,12 +4256,8 @@ corrupt:
 
 		ut_ad(buf_pool->n_pend_reads > 0);
 		buf_pool->n_pend_reads--;
-        psandbox = get_psandbox();
-        if (psandbox) {
-          event.event_type = UNHOLD;
-          event.key = (size_t) &buf_pool->n_pend_reads;
-          update_psandbox(&event, psandbox);
-        }
+		update_psandbox((size_t) &buf_pool->n_pend_reads, UNHOLD);
+
 		buf_pool->stat.n_pages_read++;
 
 		if (uncompressed) {

@@ -33,37 +33,16 @@ dict_sys_get_new_row_id(void)
 /*=========================*/
 {
 	row_id_t	id;
-//    BoxEvent event;
-//    event.event_type = MUTEX_REQUIRE;
-//    event.key_type = MUTEX;
-//    event.key = &dict_sys->mutex;
-//    PSandbox *sandbox = get_psandbox();
-//    update_psandbox(event, sandbox);
-
-
 
 	mutex_enter(&(dict_sys->mutex));
-//    event.event_type = MUTEX_GET;
-//    event.key_type = MUTEX;
-//    event.key = &dict_sys->mutex;
-//    update_psandbox(event, sandbox);
+
 	id = dict_sys->row_id;
 	if (0 == (id % DICT_HDR_ROW_ID_WRITE_MARGIN)) {
 		dict_hdr_flush_row_id();
 	}
 
 	dict_sys->row_id++;
-
-
 	mutex_exit(&(dict_sys->mutex));
-
-
-
-//    event.event_type = MUTEX_RELEASE;
-//    event.key_type = MUTEX;
-//    event.key = &dict_sys->mutex;
-//    update_psandbox(event, sandbox);
-
 	return(id);
 }
 
