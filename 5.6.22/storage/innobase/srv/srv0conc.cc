@@ -231,10 +231,10 @@ srv_conc_enter_innodb_with_atomics(
 				&srv_conc.n_active, 1);
 
 			if (n_active <= srv_thread_concurrency) {
-#ifdef HAVE_PSANDBOX
+
                 update_psandbox((size_t) &srv_conc.n_active, ENTER);
                 update_psandbox((size_t)&srv_conc.n_active, HOLD);
-#endif
+
 				srv_enter_innodb_with_tickets(trx);
 
 				if (notified_mysql) {
