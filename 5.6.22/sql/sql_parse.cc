@@ -913,7 +913,7 @@ bool do_command(THD *thd)
   ulong packet_length;
   NET *net= &thd->net;
   enum enum_server_command command;
-  PSandbox *sandbox;
+  int sandbox_id;
   DBUG_ENTER("do_command");
 
   /*
@@ -1032,10 +1032,10 @@ bool do_command(THD *thd)
   my_net_set_read_timeout(net, thd->variables.net_read_timeout);
 
   DBUG_ASSERT(packet_length);
-  sandbox = get_psandbox();
-  active_psandbox(sandbox);
+  sandbox_id = get_current_psandbox();
+  activate_psandbox(sandbox_id);
   return_value= dispatch_command(command, thd, packet+1, (uint) (packet_length-1));
-  freeze_psandbox(sandbox);
+  freeze_psandbox(sandbox_id);
 
 out:
   /* The statement instrumentation must be closed in all cases. */

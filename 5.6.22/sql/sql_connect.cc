@@ -930,7 +930,7 @@ bool thd_is_connection_alive(THD *thd)
 void do_handle_one_connection(THD *thd_arg)
 {
   THD *thd= thd_arg;
-  PSandbox* box = create_psandbox();
+  int sandbox_id = create_psandbox();
 
   thd->thr_create_utime= my_micro_time();
 
@@ -986,7 +986,7 @@ void do_handle_one_connection(THD *thd_arg)
   break;
     }
 //    printf("the count is %d, for psandbox %d\n",box->total_activity,box->bid);
-    release_psandbox(box);
+    release_psandbox(sandbox_id);
     end_connection(thd);
 
 end_thread:
@@ -1000,7 +1000,7 @@ end_thread:
       handle the next connection.
     */
     thd= current_thd;
-    box = create_psandbox();
+    sandbox_id = create_psandbox();
     thd->thread_stack= (char*) &thd;
   }
 }
