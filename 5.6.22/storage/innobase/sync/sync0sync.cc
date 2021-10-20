@@ -461,6 +461,14 @@ mutex_set_waiters(
 				word in memory is atomic */
 	os_wmb;
 }
+/******************************************************************//**
+ * Psandbox change
+ */
+UNIV_INTERN
+void
+mutex_exit_psandbox(ib_mutex_t*	mutex) {
+  update_psandbox((size_t)mutex, UNHOLD);
+}
 
 /******************************************************************//**
 Reserves a mutex for the current thread. If the mutex is reserved, the
@@ -557,7 +565,8 @@ spin_loop:
 	for (i = 0; i < 4; i++) {
 		if (ib_mutex_test_and_set(mutex) == 0) {
 			/* Succeeded! Free the reserved wait cell */
-
+			update_psandbox((size_t)mutex, ENTER);
+			update_psandbox((size_t)mutex, HOLD);
 			sync_array_free_cell(sync_arr, index);
 
 			ut_d(mutex->thread_id = os_thread_get_curr_id());
@@ -601,7 +610,7 @@ mutex_signal_object(
 	os_event_set(mutex->event);
 	sync_array_object_signalled();
 
-	update_psandbox((size_t)mutex, UNHOLD);
+
 }
 
 #ifdef UNIV_SYNC_DEBUG

@@ -70,6 +70,14 @@ mutex_signal_object(
 	ib_mutex_t*	mutex);	/*!< in: mutex */
 
 /******************************************************************//**
+* Psandbox change
+*/
+UNIV_INTERN
+void
+mutex_exit_psandbox(
+/*================*/
+ib_mutex_t*	mutex);	/*!< in: mutex */
+/******************************************************************//**
 Performs an atomic test-and-set instruction to the lock_word field of a
 mutex.
 @return	the previous value of lock_word: 0 or 1 */
@@ -103,6 +111,9 @@ ib_mutex_test_and_set(
 #endif
 }
 
+
+
+
 /******************************************************************//**
 Performs a reset instruction to the lock_word field of a mutex. This
 instruction also serializes memory operations to the program order. */
@@ -121,6 +132,7 @@ mutex_reset_lock_word(
 # else
 	os_atomic_test_and_set_ulint(&mutex->lock_word, 0);
 # endif
+	mutex_exit_psandbox(mutex);
 #else
 	mutex->lock_word = 0;
 
