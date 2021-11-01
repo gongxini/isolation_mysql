@@ -322,7 +322,7 @@ lock_wait_suspend_thread(
 	update_psandbox((size_t)&slot->event, PREPARE);
 	os_event_wait(slot->event);
 	update_psandbox((size_t)&slot->event, ENTER);
-	update_psandbox((size_t)&slot->event, HOLD);
+
 
 	thd_wait_end(trx->mysql_thd);
 
@@ -416,11 +416,9 @@ lock_wait_release_thread_if_suspended(
 			trx->error_state = DB_DEADLOCK;
 			trx->lock.was_chosen_as_deadlock_victim = FALSE;
 		}
-		long int penalty = do_update_psandbox((size_t)&thr->slot->event,UNHOLD,true);
+
+		do_update_psandbox((size_t)&thr->slot->event,COND_WAKE,true);
 		os_event_set(thr->slot->event);
-		penalize_psandbox(penalty);
-
-
 	}
 }
 
