@@ -930,7 +930,12 @@ bool thd_is_connection_alive(THD *thd)
 void do_handle_one_connection(THD *thd_arg)
 {
   THD *thd= thd_arg;
-  int sandbox_id = create_psandbox();
+  IsolationRule rule;
+  rule.type = SCALABLE;
+  rule.isolation_level = 5;
+  rule.priority = 0;
+  int sandbox_id = create_psandbox(rule);
+
 
   thd->thr_create_utime= my_micro_time();
 
@@ -1000,7 +1005,7 @@ end_thread:
       handle the next connection.
     */
     thd= current_thd;
-    sandbox_id = create_psandbox();
+    sandbox_id = create_psandbox(rule);
     thd->thread_stack= (char*) &thd;
   }
 }

@@ -25,6 +25,7 @@ Created 25/5/2010 Sunny Bains
 
 #define LOCK_MODULE_IMPLEMENTATION
 
+#include <psandbox.h>
 #include "srv0mon.h"
 #include "que0que.h"
 #include "lock0lock.h"
@@ -318,8 +319,10 @@ lock_wait_suspend_thread(
 		ut_ad(lock_type == LOCK_TABLE);
 		thd_wait_begin(trx->mysql_thd, THD_WAIT_TABLE_LOCK);
 	}
-
+	update_psandbox((size_t)&slot->event, PREPARE);
 	os_event_wait(slot->event);
+	update_psandbox((size_t)&slot->event, ENTER);
+	update_psandbox((size_t)&slot->event, HOLD);
 
 	thd_wait_end(trx->mysql_thd);
 
@@ -413,8 +416,11 @@ lock_wait_release_thread_if_suspended(
 			trx->error_state = DB_DEADLOCK;
 			trx->lock.was_chosen_as_deadlock_victim = FALSE;
 		}
-
+		long int penalty = do_update_psandbox((size_t)&thr->slot->event,UNHOLD,true);
 		os_event_set(thr->slot->event);
+		penalize_psandbox(penalty);
+
+
 	}
 }
 

@@ -2140,7 +2140,7 @@ fil_inc_pending_ops(
 	space->n_pending_ops++;
 
 	mutex_exit(&fil_system->mutex);
-	update_psandbox((size_t)&space->n_pending_ops,HOLD);
+//	update_psandbox((size_t)&space->n_pending_ops,HOLD);
 
 	return(FALSE);
 }
@@ -2169,7 +2169,7 @@ fil_decr_pending_ops(
 	if (space != NULL) {
 		space->n_pending_ops--;
 
-        update_psandbox((size_t)&space->n_pending_ops, UNHOLD);
+//        update_psandbox((size_t)&space->n_pending_ops, UNHOLD);
 	}
 
 	mutex_exit(&fil_system->mutex);

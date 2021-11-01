@@ -1116,7 +1116,7 @@ buf_LRU_get_free_only(
 		ut_ad(!block->page.in_LRU_list);
 		ut_a(!buf_page_in_file(&block->page));
 		UT_LIST_REMOVE(list, buf_pool->free, (&block->page));
-        update_psandbox((size_t) &buf_pool->free, HOLD);
+//        update_psandbox((size_t) &buf_pool->free, HOLD);
 
 		mutex_enter(&block->mutex);
 
@@ -1248,7 +1248,7 @@ buf_LRU_get_free_block(
 	ibool		mon_value_was	= FALSE;
 	ibool		started_monitor	= FALSE;
 
-    update_psandbox((size_t) &buf_pool->free, PREPARE);
+//    update_psandbox((size_t) &buf_pool->free, PREPARE);
 	MONITOR_INC(MONITOR_LRU_GET_FREE_SEARCH);
 loop:
 	buf_pool_mutex_enter(buf_pool);
@@ -1268,7 +1268,7 @@ loop:
 			srv_print_innodb_monitor =
 				static_cast<my_bool>(mon_value_was);
 		}
-        update_psandbox((size_t) &buf_pool->free, ENTER);
+//        update_psandbox((size_t) &buf_pool->free, ENTER);
 
 		return(block);
 	}
@@ -2105,7 +2105,7 @@ buf_LRU_block_free_non_file_page(
 		mutex_enter(&block->mutex);
 		page_zip_set_size(&block->page.zip, 0);
 	}
-	update_psandbox((size_t) &buf_pool->free, UNHOLD);
+//	update_psandbox((size_t) &buf_pool->free, UNHOLD);
 
 	UT_LIST_ADD_FIRST(list, buf_pool->free, (&block->page));
 	ut_d(block->page.in_free_list = TRUE);

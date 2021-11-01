@@ -467,7 +467,7 @@ mutex_set_waiters(
 UNIV_INTERN
 void
 mutex_exit_psandbox(ib_mutex_t*	mutex) {
-  update_psandbox((size_t)mutex, UNHOLD);
+//  update_psandbox((size_t)mutex, UNHOLD);
 }
 
 /******************************************************************//**
@@ -488,7 +488,7 @@ mutex_spin_wait(
 	sync_array_t*	sync_arr;
 	size_t		counter_index;
 
-	update_psandbox((size_t)mutex, PREPARE);
+//	update_psandbox((size_t)mutex, PREPARE);
 	counter_index = (size_t) os_thread_get_curr_id();
 
 	ut_ad(mutex);
@@ -528,8 +528,8 @@ spin_loop:
 	if (ib_mutex_test_and_set(mutex) == 0) {
 		/* Succeeded! */
 
-        update_psandbox((size_t)mutex, ENTER);
-        update_psandbox((size_t)mutex, HOLD);
+//        update_psandbox((size_t)mutex, ENTER);
+//        update_psandbox((size_t)mutex, HOLD);
 		ut_d(mutex->thread_id = os_thread_get_curr_id());
 #ifdef UNIV_SYNC_DEBUG
 		mutex_set_debug_info(mutex, file_name, line);
@@ -565,8 +565,8 @@ spin_loop:
 	for (i = 0; i < 4; i++) {
 		if (ib_mutex_test_and_set(mutex) == 0) {
 			/* Succeeded! Free the reserved wait cell */
-			update_psandbox((size_t)mutex, ENTER);
-			update_psandbox((size_t)mutex, HOLD);
+//			update_psandbox((size_t)mutex, ENTER);
+//			update_psandbox((size_t)mutex, HOLD);
 			sync_array_free_cell(sync_arr, index);
 
 			ut_d(mutex->thread_id = os_thread_get_curr_id());

@@ -132,7 +132,7 @@ mutex_reset_lock_word(
 # else
 	os_atomic_test_and_set_ulint(&mutex->lock_word, 0);
 # endif
-	mutex_exit_psandbox(mutex);
+
 #else
 	mutex->lock_word = 0;
 
@@ -189,7 +189,7 @@ mutex_exit_func(
 	sync_thread_reset_level(mutex);
 #endif
 	mutex_reset_lock_word(mutex);
-
+	mutex_exit_psandbox(mutex);
 	/* A problem: we assume that mutex_reset_lock word
 	is a memory barrier, that is when we read the waiters
 	field next, the read must be serialized in memory

@@ -3732,7 +3732,7 @@ err_exit:
 
 	buf_pool->n_pend_reads++;
 
-	update_psandbox((size_t) &buf_pool->n_pend_reads, HOLD);
+//	update_psandbox((size_t) &buf_pool->n_pend_reads, HOLD);
 
 func_exit:
 	buf_pool_mutex_exit(buf_pool);
@@ -4051,7 +4051,7 @@ buf_mark_space_corrupt(
 
 	ut_ad(buf_pool->n_pend_reads > 0);
 	buf_pool->n_pend_reads--;
-	update_psandbox((size_t) &buf_pool->n_pend_reads, UNHOLD);
+//	update_psandbox((size_t) &buf_pool->n_pend_reads, UNHOLD);
 	buf_pool_mutex_exit(buf_pool);
 
 	return(ret);
@@ -4256,7 +4256,7 @@ corrupt:
 
 		ut_ad(buf_pool->n_pend_reads > 0);
 		buf_pool->n_pend_reads--;
-		update_psandbox((size_t) &buf_pool->n_pend_reads, UNHOLD);
+//		update_psandbox((size_t) &buf_pool->n_pend_reads, UNHOLD);
 
 		buf_pool->stat.n_pages_read++;
 
