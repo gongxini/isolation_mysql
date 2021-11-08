@@ -931,8 +931,8 @@ void do_handle_one_connection(THD *thd_arg)
 {
   THD *thd= thd_arg;
   IsolationRule rule;
-  rule.type = SCALABLE;
-  rule.isolation_level = 5;
+  rule.type = RELATIVE;
+  rule.isolation_level = 20;
   rule.priority = 0;
   int sandbox_id = create_psandbox(rule);
 

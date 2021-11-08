@@ -30,6 +30,7 @@ The read-write lock (for thread synchronization)
 Created 9/11/1995 Heikki Tuuri
 *******************************************************/
 
+#include <psandbox.h>
 #include "sync0rw.h"
 #ifdef UNIV_NONINL
 #include "sync0rw.ic"
@@ -352,6 +353,16 @@ rw_lock_validate(
 #endif /* UNIV_DEBUG */
 
 /******************************************************************//**
+ * Psandbox change
+ */
+UNIV_INTERN
+void
+rwlock_exit_psandbox(rw_lock_t*	lock) {
+  update_psandbox((size_t)lock, COND_WAKE);
+}
+
+
+/******************************************************************//**
 Lock an rw-lock in shared mode for the current thread. If the rw-lock is
 locked in exclusive mode, or there is an exclusive lock request waiting,
 the function spins a preset time (controlled by SYNC_SPIN_ROUNDS), waiting
@@ -377,7 +388,7 @@ rw_lock_s_lock_spin(
 	counter_index = (size_t) os_thread_get_curr_id();
 
 	ut_ad(rw_lock_validate(lock));
-
+	update_psandbox((size_t)lock, PREPARE);
 	rw_lock_stats.rw_s_spin_wait_count.add(counter_index, 1);
 lock_loop:
 
@@ -398,7 +409,8 @@ lock_loop:
 	/* We try once again to obtain the lock */
 	if (TRUE == rw_lock_s_lock_low(lock, pass, file_name, line)) {
 		rw_lock_stats.rw_s_spin_round_count.add(counter_index, i);
-
+		update_psandbox((size_t)lock, ENTER);
+//		update_psandbox((size_t)lock, HOLD);
 		return; /* Success */
 	} else {
 
@@ -419,6 +431,8 @@ lock_loop:
 
 		if (TRUE == rw_lock_s_lock_low(lock, pass, file_name, line)) {
 			sync_array_free_cell(sync_arr, index);
+			update_psandbox((size_t)lock, ENTER);
+//			update_psandbox((size_t)lock, HOLD);
 			return; /* Success */
 		}
 
@@ -477,7 +491,7 @@ rw_lock_x_lock_wait(
 	it here for efficiency. */
 
 	counter_index = (size_t) os_thread_get_curr_id();
-
+	update_psandbox((size_t)lock, PREPARE);
 	os_rmb;
 	ut_ad(lock->lock_word <= 0);
 
@@ -527,6 +541,8 @@ rw_lock_x_lock_wait(
 			sync_array_free_cell(sync_arr, index);
 		}
 	}
+	update_psandbox((size_t)lock, ENTER);
+	update_psandbox((size_t)lock, HOLD);
 	rw_lock_stats.rw_x_spin_round_count.add(counter_index, i);
 }
 

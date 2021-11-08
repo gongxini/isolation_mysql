@@ -27,15 +27,16 @@ Created 4/18/1996 Heikki Tuuri
 Returns a new row id.
 @return	the new id */
 
+#include <psandbox.h>
 UNIV_INLINE
 row_id_t
 dict_sys_get_new_row_id(void)
 /*=========================*/
 {
 	row_id_t	id;
-
+	update_psandbox((size_t)&dict_sys->mutex, PREPARE);
 	mutex_enter(&(dict_sys->mutex));
-
+	update_psandbox((size_t)&dict_sys->mutex, ENTER);
 	id = dict_sys->row_id;
 	if (0 == (id % DICT_HDR_ROW_ID_WRITE_MARGIN)) {
 		dict_hdr_flush_row_id();
@@ -43,6 +44,7 @@ dict_sys_get_new_row_id(void)
 
 	dict_sys->row_id++;
 	mutex_exit(&(dict_sys->mutex));
+	update_psandbox((size_t)&dict_sys->mutex, COND_WAKE);
 	return(id);
 }
 

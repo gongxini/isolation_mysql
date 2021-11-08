@@ -2006,7 +2006,7 @@ srv_master_evict_from_table_cache(
 		innobase_get_table_cache_size(), pct_check);
 
 	dict_mutex_exit_for_mysql();
-
+	printf("srv_master_evict_from_table_cache %u\n",&dict_operation_lock);
 	rw_lock_x_unlock(&dict_operation_lock);
 
 	return(n_tables_evicted);
@@ -2725,7 +2725,6 @@ DECLARE_THREAD(srv_purge_coordinator_thread)(
 
 	purge_sys->running = true;
 	purge_sys->state = PURGE_STATE_RUN;
-	update_psandbox((size_t) &purge_sys->state, UNHOLD);
 
 	rw_lock_x_unlock(&purge_sys->latch);
 
@@ -2742,7 +2741,11 @@ DECLARE_THREAD(srv_purge_coordinator_thread)(
 	slot = srv_reserve_slot(SRV_PURGE);
 
 	ulint	rseg_history_len = trx_sys->rseg_history_len;
-
+	IsolationRule rule;
+	rule.type = RELATIVE;
+	rule.isolation_level = 100;
+	rule.priority = 0;
+	int sandbox_id = create_psandbox(rule);
 	do {
 		/* If there are no records to purge or the last
 		purge didn't purge any records then wait for activity. */
@@ -2760,12 +2763,14 @@ DECLARE_THREAD(srv_purge_coordinator_thread)(
 		}
 
 		n_total_purged = 0;
-
+		activate_psandbox(sandbox_id);
 		rseg_history_len = srv_do_purge(
 			srv_n_purge_threads, &n_total_purged);
+		freeze_psandbox(sandbox_id);
 
 	} while (!srv_purge_should_exit(n_total_purged));
 
+	release_psandbox(sandbox_id);
 	/* Ensure that we don't jump out of the loop unless the
 	exit condition is satisfied. */
 
@@ -2794,7 +2799,7 @@ DECLARE_THREAD(srv_purge_coordinator_thread)(
 	rw_lock_x_lock(&purge_sys->latch);
 
 	purge_sys->state = PURGE_STATE_EXIT;
-    update_psandbox((size_t) &purge_sys->state, UNHOLD);
+
 
 	purge_sys->running = false;
 

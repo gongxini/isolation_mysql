@@ -1394,7 +1394,6 @@ trx_purge_run(void)
 			ib_logf(IB_LOG_LEVEL_INFO, "Resuming purge");
 
 			purge_sys->state = PURGE_STATE_RUN;
-			update_psandbox((size_t) &purge_sys->state, UNHOLD);
 		}
 
 		MONITOR_INC_VALUE(MONITOR_PURGE_RESUME_COUNT, 1);
