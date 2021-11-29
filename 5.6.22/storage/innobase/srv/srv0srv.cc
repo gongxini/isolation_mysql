@@ -2006,7 +2006,6 @@ srv_master_evict_from_table_cache(
 		innobase_get_table_cache_size(), pct_check);
 
 	dict_mutex_exit_for_mysql();
-	printf("srv_master_evict_from_table_cache %u\n",&dict_operation_lock);
 	rw_lock_x_unlock(&dict_operation_lock);
 
 	return(n_tables_evicted);
@@ -2548,6 +2547,7 @@ srv_do_purge(
 	}
 
 	do {
+
 		if (trx_sys->rseg_history_len > rseg_history_len
 		    || (srv_max_purge_lag > 0
 			&& rseg_history_len > srv_max_purge_lag)) {

@@ -120,7 +120,6 @@ trx_purge_sys_create(
 	purge_sys = static_cast<trx_purge_t*>(mem_zalloc(sizeof(*purge_sys)));
 
 	purge_sys->state = PURGE_STATE_INIT;
-	update_psandbox((size_t) &purge_sys->state, HOLD);
 	purge_sys->event = os_event_create();
 
 	/* Take ownership of ib_bh, we are responsible for freeing it. */
@@ -1253,6 +1252,7 @@ run_synchronously:
 		if (n_purge_threads > 1) {
 			trx_purge_wait_for_workers_to_complete(purge_sys);
 		}
+
 	}
 
 	ut_a(purge_sys->n_submitted == purge_sys->n_completed);
