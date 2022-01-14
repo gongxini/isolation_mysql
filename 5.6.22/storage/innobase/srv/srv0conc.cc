@@ -190,23 +190,6 @@ thread only had to wait for one turn before it was able to enter InnoDB we
 decrement it by one. This is to try and keep the sleep time stable around the
 "optimum" sleep time. */
 
-struct timespec timeDiff(struct timespec start, struct timespec stop) {
-  struct timespec result;
-  if ((stop.tv_nsec - start.tv_nsec) < 0) {
-    result.tv_sec = stop.tv_sec - start.tv_sec - 1;
-    result.tv_nsec = stop.tv_nsec - start.tv_nsec + 1000000000;
-  } else {
-    result.tv_sec = stop.tv_sec - start.tv_sec;
-    result.tv_nsec = stop.tv_nsec - start.tv_nsec;
-  }
-
-  return result;
-}
-
-static inline long time2ns(struct timespec t1) {
-  return t1.tv_sec * 1000000000L + t1.tv_nsec;
-}
-
 static
 void
 srv_conc_enter_innodb_with_atomics(

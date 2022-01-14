@@ -358,7 +358,7 @@ rw_lock_validate(
 UNIV_INTERN
 void
 rwlock_exit_psandbox(rw_lock_t*	lock) {
-  update_psandbox((size_t)lock, COND_WAKE);
+  update_psandbox((size_t)lock, UNHOLD);
 }
 
 
@@ -410,7 +410,7 @@ lock_loop:
 	if (TRUE == rw_lock_s_lock_low(lock, pass, file_name, line)) {
 		rw_lock_stats.rw_s_spin_round_count.add(counter_index, i);
 		update_psandbox((size_t)lock, ENTER);
-//		update_psandbox((size_t)lock, HOLD);
+		update_psandbox((size_t)lock, HOLD);
 		return; /* Success */
 	} else {
 
@@ -432,7 +432,7 @@ lock_loop:
 		if (TRUE == rw_lock_s_lock_low(lock, pass, file_name, line)) {
 			sync_array_free_cell(sync_arr, index);
 			update_psandbox((size_t)lock, ENTER);
-//			update_psandbox((size_t)lock, HOLD);
+			update_psandbox((size_t)lock, HOLD);
 			return; /* Success */
 		}
 

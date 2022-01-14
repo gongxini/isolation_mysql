@@ -3732,7 +3732,7 @@ err_exit:
 
 	buf_pool->n_pend_reads++;
 
-//	update_psandbox((size_t) &buf_pool->n_pend_reads, HOLD);
+	update_psandbox((size_t) &buf_pool->n_pend_reads, HOLD);
 
 func_exit:
 	buf_pool_mutex_exit(buf_pool);

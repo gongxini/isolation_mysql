@@ -932,7 +932,7 @@ void do_handle_one_connection(THD *thd_arg)
   THD *thd= thd_arg;
   IsolationRule rule;
   rule.type = RELATIVE;
-  rule.isolation_level = 20;
+  rule.isolation_level = 50;
   rule.priority = 0;
   int sandbox_id = create_psandbox(rule);
 
@@ -977,7 +977,7 @@ void do_handle_one_connection(THD *thd_arg)
   {
 	bool rc;
 
-    NET *net= &thd->net;
+	NET *net= &thd->net;
     mysql_socket_set_thread_owner(net->vio->mysql_socket);
 
     rc= thd_prepare_connection(thd);
