@@ -358,7 +358,7 @@ rw_lock_validate(
 UNIV_INTERN
 void
 rwlock_exit_psandbox(rw_lock_t*	lock) {
-  update_psandbox((size_t)lock, UNHOLD);
+  do_update_psandbox((size_t)lock, UNHOLD,false,true);
 }
 
 

@@ -417,7 +417,7 @@ lock_wait_release_thread_if_suspended(
 			trx->lock.was_chosen_as_deadlock_victim = FALSE;
 		}
 
-		do_update_psandbox((size_t)&thr->slot->event,UNHOLD,true);
+		do_update_psandbox((size_t)&thr->slot->event,UNHOLD,true,FALSE);
 		os_event_set(thr->slot->event);
 	}
 }
