@@ -107,7 +107,11 @@
 #include "sp_rcontext.h"
 #include "sp_cache.h"
 #include "sql_reload.h"  // reload_acl_and_cache
-
+#include "rkdef.h"
+#include <string>
+#include <fstream>
+#include <cstdlib>
+#include <thread>
 #ifdef HAVE_POLL_H
 #include <poll.h>
 #endif
@@ -285,6 +289,8 @@ extern "C" sig_handler handle_fatal_signal(int sig);
 #else
 #define ENABLE_TEMP_POOL 0
 #endif
+
+
 
 /* Constants */
 
@@ -1826,6 +1832,19 @@ bool gtid_server_init()
   return res;
 }
 
+/*****  Psandbox changes  ******/
+void output_all_log() {
+  (void)!system("mkdir -p /tmp/mysql-log-data");
+  std::string data_file_name = "/tmp/mysql-log-data/mysql-" + std::to_string(getpid())
+      + ".data";
+
+  std::ofstream os(data_file_name);
+  for (size_t i = 0, end = std::min(size_t(all_log_count), size_t(RKLOGMAX)); i < end; ++i) {
+    auto &log = all_log[i];
+    os << log.rec_type << ' ' << log.tid << ' ' << log.duration << '\n';
+  }
+}
+
 
 void clean_up(bool print_message)
 {
@@ -1833,6 +1852,7 @@ void clean_up(bool print_message)
   if (cleanup_done++)
     return; /* purecov: inspected */
 
+  output_all_log();
   stop_handle_manager();
   release_ddl_log();
 

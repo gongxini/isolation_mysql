@@ -61,6 +61,7 @@
                               // mysql_routine_grant,
                               // mysql_show_grants,
                               // sp_grant_privileges, ...
+
 #include "sql_test.h"         // mysql_print_status
 #include "sql_select.h"       // handle_select, mysql_select,
 #include "sql_load.h"         // mysql_load
@@ -103,6 +104,7 @@
 
 #include <algorithm>
 #include <psandbox.h>
+#include <rkdef.h>
 using std::max;
 using std::min;
 
@@ -127,7 +129,8 @@ static bool execute_sqlcom_select(THD *thd, TABLE_LIST *all_tables);
 static bool check_show_access(THD *thd, TABLE_LIST *table);
 static void sql_kill(THD *thd, ulong id, bool only_kill_query);
 static bool lock_tables_precheck(THD *thd, TABLE_LIST *tables);
-
+std::atomic_size_t all_log_count(0);
+std::vector<Rec> all_log(RKLOGMAX);
 const char *any_db="*any*";	// Special symbol for check_access
 
 const LEX_STRING command_name[]={
@@ -915,7 +918,7 @@ bool do_command(THD *thd)
   enum enum_server_command command;
   int sandbox_id;
   DBUG_ENTER("do_command");
-
+  auto t1 = high_resolution_clock::now();
   /*
     indicator of uninitialized lex => normal flow of errors handling
     (see my_message_sql)
@@ -1039,6 +1042,8 @@ bool do_command(THD *thd)
 
 out:
   /* The statement instrumentation must be closed in all cases. */
+  auto t2 = high_resolution_clock::now();
+  put_log(DOCMD, pthread_self(), duration_cast<nanoseconds>(t2 - t1).count());
   DBUG_ASSERT(thd->m_statement_psi == NULL);
   DBUG_RETURN(return_value);
 }

@@ -62,6 +62,7 @@ SET(HEADERS
   byte_order_generic_x86_64.h
   little_endian.h
   big_endian.h
+  rkdef.h
   ${HEADERS_GEN_CONFIGURE}
 )
 

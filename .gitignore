@@ -5,4 +5,4 @@ cmake-build-release/
 compile_commands.json
 cscope.*
 *.swp
-
+dist/
