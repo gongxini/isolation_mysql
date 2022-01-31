@@ -1841,7 +1841,7 @@ void output_all_log() {
   std::ofstream os(data_file_name);
   for (size_t i = 0, end = std::min(size_t(all_log_count), size_t(RKLOGMAX)); i < end; ++i) {
     auto &log = all_log[i];
-    os << log.rec_type << ' ' << log.tid << ' ' << log.duration << '\n';
+    os << log.rec_type << ',' << log.tid << ',' << log.duration << '\n';
   }
 }
 
