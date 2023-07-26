@@ -14,3 +14,5 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 make install
+cd ..
+./init_db.sh
