@@ -14,12 +14,9 @@ fi
 
 basedir=`pwd`
 
-echo "Copying and customizing support-files/my-small.cnf to my.cnf..."
+echo "my.cnf..."
 
-sed -e "s#socket\s*=\s*/tmp/mysql.sock#socket\t=\t$basedir/mysqld.sock#g" \
-  -e "/^# Here follows entries/a [mysqld_safe]\nsocket\t=\t$basedir/mysqld.sock\nnice\t=\t0" \
-  -e "/^skip-external-locking/i basedir\t=\t$basedir\ndatadir\t=\t$basedir/data" \
-  support-files/my-small.cnf > my.cnf
+cp ../my.cnf .
 
 echo "Installing db..."
 scripts/mysql_install_db  --basedir=$basedir --datadir=$basedir/data
