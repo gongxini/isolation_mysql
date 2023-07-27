@@ -16,7 +16,7 @@ fi
 make install
 cd ..
 ./init_db.sh
-echo "export PSANDBOX_MYSQL_DIR=`pwd`/dist/bin" >> $HOME/.bashrc
+echo "export PSANDBOX_MYSQL_DIR=`pwd`/dist" >> $HOME/.bashrc
 echo "export LD_LIBRARY_PATH=`pwd`/dist/lib:$LD_LIBRARY_PATH" >> $HOME/.bashrc
 echo "export PATH=`pwd`/dist/bin:$PATH" >> $HOME/.bashrc
 
